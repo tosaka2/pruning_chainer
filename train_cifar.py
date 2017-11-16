@@ -11,6 +11,7 @@ from chainer.datasets import get_cifar100
 
 import models.VGG
 
+import pruning
 
 def main():
     parser = argparse.ArgumentParser(description='Chainer CIFAR example:')
@@ -90,13 +91,17 @@ def main():
     trainer.extend(extensions.PrintReport(
         ['epoch', 'main/loss', 'validation/main/loss',
          'main/accuracy', 'validation/main/accuracy', 'elapsed_time']))
-
+    
     # Print a progress bar to stdout
     trainer.extend(extensions.ProgressBar())
 
     if args.resume:
         # Resume from a snapshot
         chainer.serializers.load_npz(args.resume, trainer)
+
+    pruning_rate = 0.5
+    masks = pruning.create_model_mask(model, pruning_rate)
+    trainer.extend(pruning.pruned(model, masks))
 
     # Run the training
     trainer.run()
