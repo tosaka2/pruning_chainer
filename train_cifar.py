@@ -99,6 +99,7 @@ def main():
         # Resume from a snapshot
         chainer.serializers.load_npz(args.resume, trainer)
 
+    # Set pruning
     pruning_rate = 0.5
     masks = pruning.create_model_mask(model, pruning_rate)
     trainer.extend(pruning.pruned(model, masks))
