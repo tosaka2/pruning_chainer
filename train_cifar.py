@@ -29,6 +29,8 @@ def main():
                         help='Directory to output the result')
     parser.add_argument('--resume', '-r', default='',
                         help='Resume the training from snapshot')
+    parser.add_argument('--pruning', '-p', type=float, default=0.8,
+                        help='Prune the model')
     args = parser.parse_args()
 
     print('GPU: {}'.format(args.gpu))
@@ -100,8 +102,7 @@ def main():
         chainer.serializers.load_npz(args.resume, trainer)
 
     # Set pruning
-    pruning_rate = 0.5
-    masks = pruning.create_model_mask(model, pruning_rate)
+    masks = pruning.create_model_mask(model, args.pruning)
     trainer.extend(pruning.pruned(model, masks))
 
     # Run the training
