@@ -3,13 +3,15 @@ import chainer.links as L
 from chainer import training
 
 import numpy as np
+import chainer.cuda
 
-def create_layer_mask(weights, pruning_rate):
-    if weights == None:
-        raise Exception("Some waits of layer is None.")
+def create_layer_mask(weights, pruning_rate, xp=chainer.cuda.cupy):
 
-    abs_W = np.abs(weights.data)
-    data = np.sort(np.ndarray.flatten(abs_W))
+    if weights.data is None:
+        raise Exception("Some weights of layer is None.")
+
+    abs_W = xp.abs(weights.data)
+    data = xp.sort(xp.ndarray.flatten(abs_W))
     num_prune = int(len(data) * pruning_rate)
     idx_prune = min(num_prune, len(data)-1)
     threshould = data[idx_prune]
@@ -41,6 +43,7 @@ def prune_weight(model, masks):
 '''Returns a trainer extension to fix pruned weight of the model.
 '''
 def pruned(model, masks):
-    @training.make_extension(trigger=(1, 'epoch'))
-    def _pruned():
+    @training.make_extension(trigger=(1, 'iteration'))
+    def _pruned(trainer):
         prune_weight(model, masks)
+    return _pruned
