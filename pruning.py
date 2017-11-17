@@ -4,11 +4,11 @@ from chainer import training
 
 import numpy as np
 
-def create_layer_mask(layer, pruning_rate):
-    if layer.W == None:
-        return
+def create_layer_mask(weights, pruning_rate):
+    if weights == None:
+        raise Exception("Some waits of layer is None.")
 
-    abs_W = np.abs(layer.W.data)
+    abs_W = np.abs(weights.data)
     data = np.sort(np.ndarray.flatten(abs_W))
     num_prune = int(len(data) * pruning_rate)
     idx_prune = min(num_prune, len(data)-1)
@@ -27,7 +27,7 @@ def create_model_mask(model, pruning_rate):
         # specify pruned layer
         if type(link) not in (L.Convolution2D, L.Linear):
             continue
-        mask = create_layer_mask(link, pruning_rate)
+        mask = create_layer_mask(link.W, pruning_rate)
         masks[name] = mask
     return masks
 
